@@ -26,7 +26,7 @@ cc      subroutine funx (iflag,nprop,nparam,xc,fvecc,iw,liw,w,lw)
       common  /comproj/zz_st,iproj,ipcbm
       !set a common space with three parameters
       call readdata(nparam)
-
+      !call a subroutine to read files
 
       e_zz = 0.001d0
 
