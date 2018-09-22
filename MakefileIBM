@@ -1,0 +1,37 @@
+# Makefile for Unified fitting program
+
+FC=xlf 
+FFLAGS= -O
+FFLAGS2= -O -bnso -bI:/lib/syscalls.exp -bmaxdata:0x50000000
+LIBLAPACK = -L /usr/local/lib -llapack -lblas
+LIB =-L /isaac/users/awilliam/libraries/IBM/nag -lnag -lessl 
+
+HEAD = epm.inc
+
+SRC=fit.f \
+monitor.f \
+funx.f \
+pwk.f \
+recvec.f \
+gridg.f \
+pwset.f \
+fft.f \
+vcell.f \
+settp.f \
+readdata.f \
+formf.f \
+skip.f \
+solve_so.f \
+solve_nso.f \
+getline.f
+
+
+
+OBJ=$(SRC:.f=.o)
+
+.f.o:   $(HEAD)
+	$(FC) $(FFLAGS) -c $<
+
+multifit.x: 	$(OBJ) 
+	$(FC) $(FFLAGS2) -o multifit.x cft3.o $(OBJ) $(LIB)
+

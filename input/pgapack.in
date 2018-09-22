@@ -1,0 +1,13 @@
+GA Parameters      Default     Input value
+--------------    ---------    ------------
+maxiter            1000        1000 
+popsize            100         100
+numrep             10          10
+
+
+
+###############################################
+# maxiter: maximum iteractions
+# popsize: Population size
+# numrep:  Number of new strings to generate
+

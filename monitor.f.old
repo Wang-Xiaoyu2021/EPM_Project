@@ -1,0 +1,132 @@
+      subroutine monitor(m,n,xc,fvecc,fjacc,ljc,s,igrade,
+     &                   niter,nf,iw,liw,w,lw)
+
+      implicit none
+       include 'epm.inc'
+
+       integer liw,ljc,igrade,ips,lw,i,j,k
+       integer niter,nf,iw(liw),n,m,ii,iis
+       double precision fvecc(m),fjacc(ljc,n),s(n)
+       double precision w(lw),xc(n),temp
+       real*8 Ecut_t,Smth_t,scalkin_t
+       common /EcutSmth/Ecut_t,Smth_t,scalkin_t
+
+       write(6,*)
+       write(6,*)'Iteration no. ',niter
+       write(6,*)'Values of the pseudopotential parameters'
+       write(6,*)'----------------------------------------'
+
+        do 70 ips=1,itotps
+           write(6,*)psname(ips),psnum(ips)
+           write(6,*) " ---- S0,  af,  a0,   a1,    a2,   a3 -------"
+           write(6,200) psSO(ips),psfvol(ips),psa(1,ips),psb(1,ips)
+     &     ,psc(1,ips), psa(2,ips)
+ 200       format(6(E12.7,1x))
+ 70     continue
+
+        write(6,*)'Weight of Kinetic Energy',sigma
+        write(6,*)
+
+*********************************** write out the param files
+        open (unit=4,file="pseudo_all.out")
+        rewind(4)
+        if(pstype.ne.5) then
+        write(6,*) "pstype.ne.5, stop, monitor.f"
+        stop
+        endif
+
+        write (4,*) itotps, pstype, "          ! num_pot, pot. type"
+        write(4,101) Ecut_t,Smth_t,scalkin_t
+101     format(3(f8.5,1x), "        !Ecut, Smth, scalkin")
+         do ips=1,itotps
+         write(4,*)
+         write(4,*) psname(ips),psnum(ips), "      ! Atom, atomic_num"
+         write(4,111) psSO(ips)
+         write(4,112) psfvol(ips)
+         write(4,113) psa(1,ips)
+         write(4,114) psb(1,ips)
+         write(4,115) psc(1,ips)
+         write(4,116) psa(2,ips)
+         enddo
+111      format(E14.8, "            !SO param")
+112      format(E14.8, "            !af param for strain")
+113      format(E14.8, "            !a0 param")
+114      format(E14.8, "            !a1 param")
+115      format(E14.8, "            !a2 param")
+116      format(E14.8, "            !a3 param")
+         write(4,*)
+         if(iSOps.eq.0)  write(4,*)  "non-SO calc."
+         if(iSOps.eq.1)  write(4,*)  "SO calc."
+         write(4,*) "**************************"
+         
+
+        
+        ii=0
+        do iis=1,nstruct
+           write(6,*)'Results for structure ',structfile(iis)
+           write(6,*)'  Property       Ideal_Value   ',
+     &          'fitted_Value  Error    Weighted_Err**2'
+           write(6,*)'  --------             ------   ',
+     &          '-------     -----     ------------'
+           write(6,*)
+           write(4,*)'Results for structure ',structfile(iis)
+           write(4,*)'  Property       Ideal_Value   ',
+     &          'fitted_Value  Error    Weighted_Err**2'
+           write(4,*)'  --------             ------   ',
+     &          '-------     -----     ------------'
+           write(4,*)
+           if(isOps .eq. 0) then
+               do i=1,nsprop(iis)
+                 ii=ii+1
+                  if (the_data(i,iis)%weight > 0.0d0) then
+                    write(6,100)the_data(i,iis)%property,
+     $                   the_data(i,iis)%nsovalue,
+     $                   calcvalue(i,iis),calcvalue(i,iis)-
+     $                   the_data(i,iis)%nsovalue,fvecc(ii)**2
+                    write(4,100)the_data(i,iis)%property,
+     $                   the_data(i,iis)%nsovalue,
+     $                   calcvalue(i,iis),calcvalue(i,iis)-
+     $                   the_data(i,iis)%nsovalue,fvecc(ii)**2
+                 end if
+              end do
+           else
+              do i=1,nsprop(iis)
+                 ii=ii+1
+                 if (the_data(i,iis)%weight > 0.0d0) then
+                    write(6,100)the_data(i,iis)%property,
+     $                   the_data(i,iis)%sovalue,
+     $                   calcvalue(i,iis),calcvalue(i,iis)
+     $                   -the_data(i,iis)%sovalue,fvecc(ii)**2
+     $                    ,the_data(i,iis)%weight
+                    write(4,100)the_data(i,iis)%property,
+     $                   the_data(i,iis)%sovalue,
+     $                   calcvalue(i,iis),calcvalue(i,iis)
+     $                   -the_data(i,iis)%sovalue,fvecc(ii)**2
+     $                    ,the_data(i,iis)%weight
+                 end if
+              end do
+           endif
+           write(6,*)
+        end do
+c 100    format(a20,f10.5,f10.5,f10.5,f13.8)
+c 100    format(a20,f10.5,f10.5,f10.5,f13.8,f13.8)
+ 100    format(a20,f13.8,f13.8,f13.8,f13.8,f13.8)
+ 
+
+        temp=0.0d0
+        ii=0
+        do iis=1,nstruct
+           do i=1,nsprop(iis)
+              ii=ii+1
+              temp=temp+fvecc(ii)**2
+           end do
+        end do
+        write(6,*)'Total Error = ',temp
+        write(4,*)'Total Error = ',temp
+
+        close(4)
+
+        end
+
+
+
