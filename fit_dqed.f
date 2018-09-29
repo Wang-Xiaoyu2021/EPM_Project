@@ -13,6 +13,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       
       integer nparam,mparam
       external funx,monitor,funjwl
+c announced three subroutine
 
 c DQED variables
       integer, parameter :: liwork =2000
